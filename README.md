@@ -10,10 +10,19 @@ I kept overspending and had no idea where my money was going. So I built somethi
 - Log expenses by category  
 - Track remaining budget per category  
 - Mid-month warning when berries are running low  
-- Nami yells at you when you're broke  
+- Nami yells at you when you're broke
+- REST API built with Flask for web integration
 
 ## Built with  
-- Python  
+- Python
+- Flask
+
+## API Endpoints
+- GET /balance — returns current balance and per-category spending
+- POST /add-expense — logs a new expense
+
+## Coming soon
+- React frontend dashboard
 
 ## Inspired by Nami  
 *"What good is treasure if I'm alone? After sharing so much of our dreams instead of sacrificing them and leaving with you. I would rather have nothing at all!"*  
