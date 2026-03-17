@@ -38,40 +38,86 @@ def check_balance():
     except FileNotFoundError:
         return total
 
+def compute_budget_data():
+    spent_by_category = {}
+    spent_total = 0
+
+    with open(csv_file, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+
+        for row in reader:
+            category = row[1].lower()
+            amount = int(row[2])
+            spent_total += amount
+            spent_by_category[category] = spent_by_category.get(category, 0) + amount
+
+    balance = total - spent_total
+
+    json_data = {}
+    for category, target in budget_targets.items():
+        spent = spent_by_category.get(category, 0)
+        remaining = target - spent
+
+        json_data[category] = {
+            "spent": spent,
+            "target": target,
+            "remaining": remaining
+        }
+
+    return balance, json_data
+
 def read_csv():
     try:
-        spent_by_category = {}
-        spent_total = 0
-        with open(csv_file, 'r') as file:
-            reader = csv.reader(file)
-            next(reader)
-            for row in reader:
-                category = row[1].lower()
-                amount = int(row[2])
-                spent_total += amount
-                spent_by_category[category] = spent_by_category.get(category, 0) + amount
+        balance, json = compute_budget_data()
 
-        balance = total - spent_total
         print(f"\n💰 Total remaining berries: {balance}")
         if balance < 30:
             print("⚠️ Nami is glaring at you! Your treasure is almost gone… hurry or face her wrath! ⚡")
             subprocess.run(["afplay", nami])
 
         print("\n📊 Per-category spending:")
-        for category, target in budget_targets.items():
-            spent = spent_by_category.get(category, 0)
-            remaining = target - spent
+        for category, data in json.items():
+            spent = data["spent"]
+            target = data["target"]
+            remaining = data["remaining"]
+
             print(f"{category}: spent {spent} / target {target}", end='')
+
             if remaining < 0:
                 print(" ⚠️ Woah! You’ve gone overboard here! Zoro would be proud… or angry!")
             else:
                 print(f" | remaining: {remaining}")
 
         return balance
+
     except FileNotFoundError:
         print("😱 Budget file does not exist yet… let’s create our treasure map!")
-        return total
+        return {}
+    
+def write_csv_from_json(data):
+    """
+    data = {
+        "date": "2026-03-17",
+        "category": "food",
+        "amount": 50
+    }
+    """
 
+    file_exists = os.path.isfile(csv_file)
+
+    with open(csv_file, 'a', newline='') as file:
+        writer = csv.writer(file)
+
+        if not file_exists:
+            writer.writerow(csv_header)
+
+        writer.writerow([
+            data["date"],
+            data["category"].lower(),
+            data["amount"]
+        ])
+        
 def write_csv():
     print("\n📝 Time to log a new expense, Captain!")
     
